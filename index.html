@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚡ Locus Energy – Nordic Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07101f;--surf:#0d1b2e;--card:#102035;--brd:#1c3352;
+  --acc:#22d3ee;--red:#f87171;--grn:#34d399;--amb:#fbbf24;--pur:#a78bfa;
+  --t1:#e8f0f8;--t2:#7aa0be;--t3:#4a6580;--r:10px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--t1);font-family:'Outfit',system-ui,sans-serif;font-size:15px}
+body{display:flex;flex-direction:column}
+a{color:var(--acc);text-decoration:none}
+/* HEADER */
+.hdr{background:var(--surf);border-bottom:1px solid var(--brd);padding:0 24px;height:52px;display:flex;align-items:center;gap:14px;flex-shrink:0;position:sticky;top:0;z-index:10}
+.logo{font-size:16px;font-weight:700;color:var(--t1)}.logo em{color:var(--acc);font-style:normal}
+#clock{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--t2)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 5px #22c55e80}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--brd);background:transparent;color:var(--t1);cursor:pointer;font-family:'Outfit',sans-serif;transition:.15s}
+.pill:hover{border-color:var(--acc)}
+.pill.on{background:var(--acc);border-color:var(--acc);color:#07101f;font-weight:600}
+.rate-in{width:58px;font-size:12px;padding:4px 8px;border:1px solid var(--brd);border-radius:6px;background:var(--card);color:var(--t1);font-family:'JetBrains Mono',monospace;text-align:center}
+.rate-in:focus{outline:none;border-color:var(--acc)}
+/* LAYOUT */
+.body-wrap{display:flex;flex:1;overflow:hidden}
+/* SIDEBAR */
+aside{width:202px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--brd);padding:12px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.c-lbl{font-size:9px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);padding:10px 8px 3px}
+.c-lbl:first-child{padding-top:4px}
+.z-btn{display:flex;align-items:center;gap:7px;width:100%;padding:5px 8px;border-radius:7px;border:none;background:transparent;color:var(--t2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:.12s;text-align:left}
+.z-btn:hover{background:var(--card);color:var(--t1)}
+.z-btn.on{background:var(--card);color:var(--t1)}
+.z-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.z-btn .ck{margin-left:auto;font-size:10px;color:var(--acc);opacity:0}
+.z-btn.on .ck{opacity:1}
+.s-foot{font-size:11px;color:var(--t3);line-height:1.7;padding:12px 6px 4px;border-top:1px solid var(--brd);margin-top:12px}
+#updated-time{font-size:10px;color:var(--t3);padding:8px 8px 0}
+/* MAIN */
+main{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+/* PRICE STRIP */
+.pstrip{display:flex;flex-wrap:wrap;gap:8px}
+.pc{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:10px 14px;min-width:108px;flex:1;max-width:165px;transition:.15s;cursor:default}
+.pc:hover{border-color:var(--acc);transform:translateY(-1px)}
+.pc .zn{font-size:10px;font-weight:600;margin-bottom:2px}
+.pc .pv{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--t1);line-height:1.1}
+.pc .pu{font-size:10px;color:var(--t3);margin-top:1px}
+.pc .pd{font-size:10px;margin-top:3px;color:var(--t3)}
+.pc .pd.up{color:var(--red)} .pc .pd.dn{color:var(--grn)}
+.skel{background:linear-gradient(90deg,var(--card) 25%,var(--surf) 50%,var(--card) 75%);background-size:200%;animation:shim 1.4s infinite;border-radius:5px}
+@keyframes shim{0%{background-position:200%}100%{background-position:-200%}}
+/* AI BOX */
+.ai-box{background:linear-gradient(135deg,rgba(167,139,250,.07),rgba(34,211,238,.05));border:1px solid rgba(167,139,250,.22);border-radius:var(--r);padding:12px 16px;display:flex;gap:12px;align-items:flex-start}
+.ai-lbl{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--pur);margin-bottom:4px}
+.ai-txt{font-size:13px;color:var(--t1);line-height:1.65}
+.ai-sub{font-size:10px;color:var(--t3);margin-top:5px}
+/* TABS */
+.tnav{display:flex;gap:2px;border-bottom:1px solid var(--brd);margin-bottom:14px;overflow-x:auto}
+.tb{padding:9px 16px;font-size:13px;font-weight:500;font-family:'Outfit',sans-serif;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--t2);cursor:pointer;transition:.15s;margin-bottom:-1px;white-space:nowrap;flex-shrink:0}
+.tb:hover{color:var(--t1)}
+.tb.on{color:var(--acc);border-bottom-color:var(--acc)}
+.tp{display:none;flex-direction:column;gap:14px}
+.tp.on{display:flex}
+/* CHART CARD */
+.cc{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:14px 16px}
+.cc h3{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px;letter-spacing:.02em;text-transform:uppercase}
+.cc .sub{font-size:11px;color:var(--t3);margin-top:-6px;margin-bottom:10px;line-height:1.5}
+.cw{position:relative;width:100%}
+/* STATS TABLE */
+.stbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.stbl th{text-align:left;padding:5px 10px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);border-bottom:1px solid var(--brd)}
+.stbl td{padding:7px 10px;border-bottom:1px solid var(--brd);color:var(--t1);font-family:'JetBrains Mono',monospace}
+.stbl tr:last-child td{border:none}
+.stbl tr:hover td{background:rgba(255,255,255,.02)}
+.zdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+
+/* ── TRAFIKLJUS ── */
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.tl-card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.tl-card .zone-row{display:flex;align-items:center;gap:10px}
+.tl-card .zone-name{font-size:13px;font-weight:600;color:var(--t1)}
+.tl-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.tl-dot.green{background:#22c55e;box-shadow:0 0 8px #22c55e60}
+.tl-dot.yellow{background:#fbbf24;box-shadow:0 0 8px #fbbf2460}
+.tl-dot.red{background:#f87171;box-shadow:0 0 8px #f8717160}
+.tl-label{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.tl-label.green{color:#22c55e}.tl-label.yellow{color:#fbbf24}.tl-label.red{color:#f87171}
+.tl-bars{display:flex;flex-direction:column;gap:5px}
+.tl-bar-row{display:flex;align-items:center;gap:8px}
+.tl-bar-lbl{font-size:10px;color:var(--t3);width:56px;flex-shrink:0}
+.tl-bar-track{flex:1;height:5px;background:var(--brd);border-radius:3px;overflow:hidden}
+.tl-bar-fill{height:100%;border-radius:3px;transition:.4s}
+.tl-bar-val{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--t2);width:36px;text-align:right;flex-shrink:0}
+
+/* ── NORDIC SUMMARY BOX ── */
+.nordic-signal{display:flex;align-items:center;gap:20px;background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px 22px;margin-bottom:4px}
+.nordic-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0}
+.nordic-dot.green{background:#22c55e;box-shadow:0 0 12px #22c55e80}
+.nordic-dot.yellow{background:#fbbf24;box-shadow:0 0 12px #fbbf2480}
+.nordic-dot.red{background:#f87171;box-shadow:0 0 12px #f8717180}
+.nordic-label{font-size:18px;font-weight:700;color:var(--t1)}
+.nordic-sub{font-size:12px;color:var(--t2);margin-top:2px;line-height:1.5}
+.driver-chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.chip{font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--brd);font-family:'JetBrains Mono',monospace}
+.chip.bull{border-color:#22c55e40;background:rgba(34,197,94,.08);color:#22c55e}
+.chip.bear{border-color:#f8717140;background:rgba(248,113,113,.08);color:#f87171}
+.chip.neut{border-color:var(--brd);color:var(--t3)}
+
+/* ── CAPTURE RATE SPECIFIK ── */
+.cr-summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:4px}
+.cr-card{background:var(--surf);border:1px solid var(--brd);border-radius:8px;padding:10px 12px}
+.cr-card .cr-zone{font-size:10px;font-weight:600;margin-bottom:3px}
+.cr-card .cr-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.cr-card .cr-sub{font-size:10px;color:var(--t3);margin-top:1px}
+
+/* WIND CARDS */
+.wgrd{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px}
+.wc{background:var(--surf);border:1px solid var(--brd);border-radius:8px;padding:10px 12px}
+.wc .rn{font-size:10px;color:var(--t3);margin-bottom:3px}
+.wc .wv{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.wc .ws{font-size:10px;color:var(--t3);margin-top:2px}
+/* BOXES */
+.ibox{background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.22);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--t2);line-height:1.6}
+.ebox{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--red);line-height:1.6}
+/* LOADING */
+.ld-row{display:flex;align-items:center;gap:8px;padding:20px;justify-content:center;font-size:12px;color:var(--t3)}
+.sp{width:13px;height:13px;border:1.5px solid var(--brd);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{background:var(--surf);border-top:1px solid var(--brd);padding:9px 24px;font-size:11px;color:var(--t3);display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0}
+@media(max-width:680px){aside{display:none}main{padding:12px 14px}.hdr{padding:0 14px}.pc{min-width:90px}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo"><em>⚡</em> Locus Energy</div>
+  <span class="live-dot" title="Uppdateras varje timme"></span>
+  <span id="clock"></span>
+  <div class="hdr-r">
+    <button class="pill on" id="b-ore">öre/kWh</button>
+    <button class="pill" id="b-eur">EUR/MWh</button>
+    <input class="rate-in" id="rate-in" type="number" value="11.5" step="0.1" min="8" max="20" title="EUR/SEK">
+    <span style="font-size:10px;color:var(--t3)">EUR/SEK</span>
+  </div>
+</header>
+
+<div class="body-wrap">
+<aside>
+  <div class="c-lbl">Sverige</div>
+  <button class="z-btn on" data-z="SE1"><span class="dot" style="background:#93c5fd"></span>SE1 · Luleå<span class="ck">✓</span></button>
+  <button class="z-btn on" data-z="SE2"><span class="dot" style="background:#60a5fa"></span>SE2 · Sundsvall<span class="ck">✓</span></button>
+  <button class="z-btn on" data-z="SE3"><span class="dot" style="background:#3b82f6"></span>SE3 · Stockholm<span class="ck">✓</span></button>
+  <button class="z-btn on" data-z="SE4"><span class="dot" style="background:#1d4ed8"></span>SE4 · Malmö<span class="ck">✓</span></button>
+  <div class="c-lbl">Norge</div>
+  <button class="z-btn on" data-z="NO1"><span class="dot" style="background:#fca5a5"></span>NO1 · Oslo<span class="ck">✓</span></button>
+  <button class="z-btn on" data-z="NO2"><span class="dot" style="background:#f87171"></span>NO2 · Kristiansand<span class="ck">✓</span></button>
+  <button class="z-btn" data-z="NO3"><span class="dot" style="background:#ef4444"></span>NO3 · Trondheim<span class="ck">✓</span></button>
+  <button class="z-btn" data-z="NO4"><span class="dot" style="background:#dc2626"></span>NO4 · Bodø<span class="ck">✓</span></button>
+  <button class="z-btn on" data-z="NO5"><span class="dot" style="background:#b91c1c"></span>NO5 · Bergen<span class="ck">✓</span></button>
+  <div class="c-lbl">Finland</div>
+  <button class="z-btn on" data-z="FI"><span class="dot" style="background:#34d399"></span>FI · Finland<span class="ck">✓</span></button>
+  <div id="updated-time">Laddar…</div>
+  <div class="s-foot">
+    Priser: elprisenligenu.se &amp; hvakosterstrommen.no<br>
+    Vind/temp: open-meteo.com<br>
+    Beräknat server-side via GitHub Actions.
+  </div>
+</aside>
+
+<main>
+  <!-- PRICE STRIP -->
+  <div class="pstrip" id="pstrip">
+    <div class="pc"><div class="skel" style="height:9px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:22px;width:80%;margin-bottom:5px"></div><div class="skel" style="height:9px;width:45%"></div></div>
+    <div class="pc"><div class="skel" style="height:9px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:22px;width:80%;margin-bottom:5px"></div><div class="skel" style="height:9px;width:45%"></div></div>
+    <div class="pc"><div class="skel" style="height:9px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:22px;width:80%;margin-bottom:5px"></div><div class="skel" style="height:9px;width:45%"></div></div>
+    <div class="pc"><div class="skel" style="height:9px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:22px;width:80%;margin-bottom:5px"></div><div class="skel" style="height:9px;width:45%"></div></div>
+    <div class="pc"><div class="skel" style="height:9px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:22px;width:80%;margin-bottom:5px"></div><div class="skel" style="height:9px;width:45%"></div></div>
+  </div>
+
+  <!-- AI -->
+  <div class="ai-box">
+    <span style="font-size:16px;flex-shrink:0">🤖</span>
+    <div style="flex:1">
+      <div class="ai-lbl">AI-analys av dagens priser</div>
+      <div class="ai-txt" id="ai-txt" style="color:var(--t3);font-style:italic">Väntar på prisdata…</div>
+      <div class="ai-sub" id="ai-sub">Genereras av Claude</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div>
+    <nav class="tnav">
+      <button class="tb on"  data-t="today">📊 Idag &amp; imorgon</button>
+      <button class="tb"     data-t="hist">📈 Historik 30d</button>
+      <button class="tb"     data-t="portfolio">🏭 Portföljanalys</button>
+      <button class="tb"     data-t="wind">💨 Vindkraft</button>
+      <button class="tb"     data-t="hydro">💧 Vattenkraft</button>
+    </nav>
+
+    <!-- TODAY -->
+    <div class="tp on" id="tp-today">
+      <div class="cc">
+        <h3 id="h-today">Timvisa spotpriser – idag</h3>
+        <div class="ld-row" id="ld-today"><div class="sp"></div>Hämtar prisdata…</div>
+        <div class="cw"><canvas id="c-today" height="255" role="img" aria-label="Timvisa spotpriser idag"></canvas></div>
+      </div>
+      <div class="cc">
+        <h3 id="h-tmr">Day-ahead – imorgon</h3>
+        <div class="ibox" id="no-tmr" style="display:none">⏳ Day-ahead publiceras runt kl. 13:00 CET.</div>
+        <div class="cw"><canvas id="c-tmr" height="200" role="img" aria-label="Day-ahead priser imorgon"></canvas></div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="tp" id="tp-hist">
+      <div class="cc">
+        <h3>Dagliga snittpriser – senaste 30 dagarna</h3>
+        <div class="ld-row" id="ld-hist"><div class="sp"></div>Laddar historik…</div>
+        <div class="cw"><canvas id="c-hist" height="270" role="img" aria-label="Historiska dagliga snittpriser"></canvas></div>
+      </div>
+      <div class="cc">
+        <h3>Prisstatistik (30 dagar)</h3>
+        <table class="stbl">
+          <thead><tr><th>Område</th><th id="th1">Snitt</th><th id="th2">Min</th><th id="th3">Max</th><th>Std</th><th id="th4">Nu</th></tr></thead>
+          <tbody id="stbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ PORTFÖLJANALYS ══ -->
+    <div class="tp" id="tp-portfolio">
+
+      <!-- TRAFIKLJUS -->
+      <div class="cc">
+        <h3>Prisprognossignal – 14 dagar</h3>
+        <div class="sub">Ur producentperspektiv: 🟢 = priser förväntas över median → bra intäkter &nbsp;|&nbsp; 🔴 = under median → pressat kassaflöde</div>
+        <div class="ld-row" id="ld-signal"><div class="sp"></div>Beräknar signal…</div>
+        <!-- Nordisk översikt -->
+        <div class="nordic-signal" id="nordic-signal" style="display:none">
+          <div class="nordic-dot" id="nordic-dot"></div>
+          <div>
+            <div class="nordic-label" id="nordic-label"></div>
+            <div class="nordic-sub" id="nordic-sub"></div>
+          </div>
+          <div class="driver-chips" id="driver-chips"></div>
+        </div>
+        <!-- Zonsignaler -->
+        <div class="tl-grid" id="tl-grid" style="margin-top:12px"></div>
+      </div>
+
+      <!-- CAPTURE RATE -->
+      <div class="cc">
+        <h3>Capture rate – vindvägd pris vs. spotsnitt</h3>
+        <div class="sub">Capture rate = genomsnittspris du faktiskt får (vindproduktionsvägd) ÷ enkelt spotsnitt. Under 100% = vindkraft säljer systematiskt billigare än genomsnittet.</div>
+        <div class="ld-row" id="ld-capture"><div class="sp"></div>Beräknar capture rates…</div>
+        <div class="cr-summary" id="cr-summary" style="margin-top:2px"></div>
+        <div class="cw" style="margin-top:12px"><canvas id="c-capture" height="280" role="img" aria-label="Historisk capture rate per zon och månad"></canvas></div>
+      </div>
+
+      <!-- CAPTURE RATE DETALJTABELL -->
+      <div class="cc" id="cr-table-card" style="display:none">
+        <h3>Capture rate – detalj senaste månaden</h3>
+        <table class="stbl">
+          <thead><tr><th>Zon</th><th>Månad</th><th>Capture price</th><th>Spot snitt</th><th>Capture rate</th></tr></thead>
+          <tbody id="cr-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WIND -->
+    <div class="tp" id="tp-wind">
+      <div class="cc">
+        <h3>Vindhastighet 100 m navhöjd – 48h prognos</h3>
+        <div class="ld-row" id="ld-wind"><div class="sp"></div>Hämtar vindprognos…</div>
+        <div class="cw"><canvas id="c-wind" height="255" role="img" aria-label="Vindprognos 48 timmar"></canvas></div>
+      </div>
+      <div class="cc">
+        <h3>Kapacitetsfaktor (uppskattad effektkurva)</h3>
+        <div class="cw"><canvas id="c-cf" height="190" role="img" aria-label="Kapacitetsfaktor vindkraft"></canvas></div>
+      </div>
+      <div class="wgrd" id="wcards"></div>
+    </div>
+
+    <!-- HYDRO -->
+    <div class="tp" id="tp-hydro">
+      <div class="ibox">Nederbördsprognosen är den viktigaste kortsiktiga indikatorn — hög tillrinning ger normalt lägre priser 1–3 veckor framåt.</div>
+      <div class="cc">
+        <h3>Nederbördsprognos 7 dagar – vattenkraftsregioner</h3>
+        <div class="ld-row" id="ld-hydro"><div class="sp"></div>Hämtar…</div>
+        <div class="cw"><canvas id="c-prec" height="255" role="img" aria-label="Nederbördsprognos"></canvas></div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<footer>
+  <span>⚡ Locus Energy Nordic Dashboard</span> ·
+  <a href="https://elprisenligenu.se" target="_blank">elprisenligenu.se</a>
+  <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>
+  <span style="margin-left:auto;font-size:10px">Uppdateras varje timme via GitHub Actions</span>
+</footer>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════
+const ZM = {
+  SE1:{n:'SE1 · Luleå',c:'#93c5fd'},SE2:{n:'SE2 · Sundsvall',c:'#60a5fa'},
+  SE3:{n:'SE3 · Stockholm',c:'#3b82f6'},SE4:{n:'SE4 · Malmö',c:'#1d4ed8'},
+  NO1:{n:'NO1 · Oslo',c:'#fca5a5'},NO2:{n:'NO2 · Krsand',c:'#f87171'},
+  NO3:{n:'NO3 · Trond.',c:'#ef4444'},NO4:{n:'NO4 · Bodø',c:'#dc2626'},
+  NO5:{n:'NO5 · Bergen',c:'#b91c1c'},FI:{n:'FI · Finland',c:'#34d399'},
+};
+const WIND_R=[{n:'Norrland',lat:63.8,lon:19.5},{n:'Mellansv.',lat:58.5,lon:15.5},{n:'Sydsv.',lat:56.2,lon:13.8},{n:'Södra NO',lat:59.5,lon:8.5},{n:'Västra NO',lat:60.8,lon:5.5},{n:'Finland',lat:62.5,lon:25.5}];
+const HYDRO_R=[{n:'Norrland',lat:65.5,lon:18.5},{n:'Bergslagen',lat:61,lon:15},{n:'V.Norge',lat:60.8,lon:6},{n:'Ö.Norge',lat:61.5,lon:10},{n:'N.Norge',lat:68,lon:17},{n:'Finland',lat:63.5,lon:26}];
+const WC=['#93c5fd','#3b82f6','#1d4ed8','#fca5a5','#b91c1c','#34d399'];
+const OM='https://api.open-meteo.com/v1/forecast';
+const ANTHROPIC='https://api.anthropic.com/v1/messages';
+
+let cur='ore',rate=11.5,selZ=new Set(['SE1','SE2','SE3','SE4','NO1','NO2','NO5','FI']);
+let PD={},WD=[],HD=[],CHs={},CR={},PS={};
+
+const $=id=>document.getElementById(id);
+const disp=v=>cur==='ore'?v*rate/10:v;
+const unit=()=>cur==='ore'?'öre/kWh':'EUR/MWh';
+const fp=v=>typeof v==='number'?v.toFixed(1):'–';
+const same=(a,b)=>a.toDateString()===b.toDateString();
+const dlbl=d=>d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+const dlong=d=>d.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+const hide=id=>{const e=$(id);if(e)e.style.display='none'};
+const show=(id,d='block')=>{const e=$(id);if(e)e.style.display=d};
+const wcap=ws=>ws<3?0:ws<12?((ws-3)/9)**3:ws<=25?1:0;
+
+async function tryFetch(url,ms=12000){
+  try{const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);const r=await fetch(url,{signal:c.signal});clearTimeout(t);return r.ok?r.json():null;}catch(e){return null;}
+}
+
+// ════════════════════════════════════════════════════════════
+// LOAD from same-origin /data/prices.json
+// ════════════════════════════════════════════════════════════
+async function loadData(){
+  const data=await tryFetch('./data/prices.json',15000);
+  if(!data||!data.zones)return false;
+  for(const[z,rows]of Object.entries(data.zones)) PD[z]=rows.map(r=>({time:new Date(r.time),price:r.price}));
+  CR=data.capture_rates||{};
+  PS=data.price_signal||{};
+  if(data.updated){
+    const d=new Date(data.updated);
+    $('updated-time').textContent=`Uppdaterat: ${d.toLocaleString('sv-SE',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}`;
+  }
+  return Object.keys(PD).length>0;
+}
+
+// ════════════════════════════════════════════════════════════
+// CHART FACTORY
+// ════════════════════════════════════════════════════════════
+const CD={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10},color:'#7aa0be',padding:12}},
+    tooltip:{backgroundColor:'rgba(7,16,31,.97)',borderColor:'#1c3352',borderWidth:1,titleColor:'#7aa0be',bodyColor:'#e8f0f8',padding:10}},
+  scales:{x:{grid:{color:'rgba(28,51,82,.7)'},ticks:{color:'#4a6580',font:{size:10},maxTicksLimit:12}},
+    y:{grid:{color:'rgba(28,51,82,.7)'},ticks:{color:'#4a6580',font:{size:10}}}}};
+function mc(id,cfg){if(CHs[id])CHs[id].destroy();const ctx=$(id);if(!ctx)return;
+  const o={...CD,...(cfg.options||{})};o.plugins={...CD.plugins,...(cfg.options?.plugins||{})};o.scales={...CD.scales,...(cfg.options?.scales||{})};
+  CHs[id]=new Chart(ctx,{type:cfg.type,data:cfg.data,options:o});}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – PRICE STRIP
+// ════════════════════════════════════════════════════════════
+function renderStrip(){
+  const el=$('pstrip');const now=new Date();now.setMinutes(0,0,0);const cards=[];
+  for(const z of selZ){const rows=PD[z];if(!rows?.length)continue;const m=ZM[z];
+    const best=rows.reduce((a,b)=>Math.abs(b.time-now)<Math.abs(a.time-now)?b:a);
+    const yd=new Date(now);yd.setDate(yd.getDate()-1);
+    const prev=rows.reduce((a,b)=>Math.abs(b.time-yd)<Math.abs(a.time-yd)?b:a,rows[0]);
+    const d=disp(best.price)-disp(prev.price);
+    cards.push(`<div class="pc"><div class="zn" style="color:${m.c}">${m.n}</div><div class="pv">${fp(disp(best.price))}</div><div class="pu">${unit()}</div><div class="pd ${d>5?'up':d<-5?'dn':''}">${d>=0?'+':''}${fp(d)} vs igår</div></div>`);}
+  el.innerHTML=cards.join('')||'<p style="color:var(--t3);font-size:13px;padding:6px 0">Inga priser.</p>';}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – TODAY / TOMORROW
+// ════════════════════════════════════════════════════════════
+function renderToday(){
+  const today=new Date(),tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
+  $('h-today').textContent='Timvisa spotpriser – '+dlong(today);
+  $('h-tmr').textContent='Day-ahead – '+dlong(tmr);
+  const ds=[],dst=[];
+  for(const z of selZ){if(!PD[z]?.length)continue;const m=ZM[z];
+    const tod=PD[z].filter(r=>same(r.time,today));
+    const tmrd=PD[z].filter(r=>same(r.time,tmr));
+    const hour=t=>String(t.getHours()).padStart(2,'0')+':00';
+    if(tod.length)ds.push({label:m.n,data:tod.map(r=>({x:hour(r.time),y:parseFloat(disp(r.price).toFixed(1))})),borderColor:m.c,backgroundColor:m.c+'20',borderWidth:2,pointRadius:3,tension:.3,fill:false});
+    if(tmrd.length)dst.push({label:m.n,data:tmrd.map(r=>({x:hour(r.time),y:parseFloat(disp(r.price).toFixed(1))})),backgroundColor:m.c+'bb',borderColor:m.c,borderWidth:1});}
+  hide('ld-today');
+  if(ds.length)mc('c-today',{type:'line',data:{datasets:ds},options:{scales:{y:{title:{display:true,text:unit(),color:'#4a6580'}}}}});
+  if(dst.length){hide('no-tmr');show('c-tmr');mc('c-tmr',{type:'bar',data:{datasets:dst},options:{scales:{y:{title:{display:true,text:unit(),color:'#4a6580'}}}}});}
+  else{show('no-tmr');hide('c-tmr');}
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – HISTORY
+// ════════════════════════════════════════════════════════════
+function renderHistory(){
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-30);
+  const now=new Date();now.setMinutes(0,0,0);const ds=[],rows=[];
+  for(const z of selZ){
+    const data=(PD[z]||[]).filter(r=>r.time>=cutoff);if(!data.length)continue;const m=ZM[z];
+    const bd={};data.forEach(r=>{const k=r.time.toDateString();if(!bd[k])bd[k]={s:0,n:0,d:r.time};bd[k].s+=r.price;bd[k].n++;});
+    const daily=Object.values(bd).sort((a,b)=>a.d-b.d);
+    ds.push({label:m.n,data:daily.map(d=>({x:dlbl(d.d),y:parseFloat(disp(d.s/d.n).toFixed(1))})),borderColor:m.c,backgroundColor:m.c+'18',borderWidth:1.5,pointRadius:2,tension:.3,fill:true});
+    const pr=data.map(r=>disp(r.price));const me=pr.reduce((a,b)=>a+b,0)/pr.length;
+    const std=Math.sqrt(pr.map(p=>(p-me)**2).reduce((a,b)=>a+b,0)/pr.length);
+    const cl=data.reduce((a,b)=>Math.abs(b.time-now)<Math.abs(a.time-now)?b:a);
+    rows.push({m,me,mn:Math.min(...pr),mx:Math.max(...pr),std,nw:disp(cl.price)});
+  }
+  hide('ld-hist');
+  if(ds.length)mc('c-hist',{type:'line',data:{datasets:ds},options:{scales:{x:{ticks:{maxTicksLimit:9}},y:{title:{display:true,text:`Snitt (${unit()})`,color:'#4a6580'}}}}});
+  const un=unit();
+  $('stbody').innerHTML=rows.map(r=>`<tr><td><span class="zdot" style="background:${r.m.c}"></span>${r.m.n}</td><td>${fp(r.me)}</td><td>${fp(r.mn)}</td><td>${fp(r.mx)}</td><td>${fp(r.std)}</td><td>${fp(r.nw)}</td></tr>`).join('');
+  ['th1','th2','th3','th4'].forEach((id,i)=>{const e=$(id);if(e)e.textContent=['Snitt','Min','Max','Nu'][i]+` (${un})`;});
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – TRAFIKLJUS (PRICE SIGNAL)
+// ════════════════════════════════════════════════════════════
+function renderSignal(){
+  if(!PS||!PS.signal){hide('ld-signal');return;}
+  hide('ld-signal');
+
+  const labels={green:'Över median – starkt intäktsläge',yellow:'Nära median – normalt läge',red:'Under median – pressat kassaflöde'};
+  const labelShort={green:'BULLISH',yellow:'NEUTRAL',red:'BEARISH'};
+
+  // Nordisk oversikt
+  const nd=$('nordic-dot'),nl=$('nordic-label'),ns=$('nordic-sub'),nc=$('driver-chips');
+  nd.className='nordic-dot '+PS.signal;
+  nl.textContent=labelShort[PS.signal];
+  nl.style.color=PS.signal==='green'?'#22c55e':PS.signal==='red'?'#f87171':'#fbbf24';
+  ns.textContent=labels[PS.signal];
+  show('nordic-signal','flex');
+
+  // Driver chips
+  const makeChip=(label,score)=>{
+    const cls=score>0.1?'bull':score<-0.1?'bear':'neut';
+    const arrow=score>0.1?'↑':score<-0.1?'↓':'→';
+    return `<span class="chip ${cls}">${arrow} ${label}</span>`;
+  };
+  nc.innerHTML=makeChip('Vind',PS.wind_score)+makeChip('Temp',PS.temp_score)+makeChip('Hydro',PS.precip_score);
+
+  // Zonsignaler
+  const grid=$('tl-grid');
+  const zonesWithSignal=Object.entries(PS.zone_signals||{}).filter(([z])=>selZ.has(z));
+  grid.innerHTML=zonesWithSignal.map(([z,sig])=>{
+    const m=ZM[z];
+    const barColor=sig.signal==='green'?'#22c55e':sig.signal==='red'?'#f87171':'#fbbf24';
+    const norm=s=>Math.round((Math.max(-1,Math.min(1,s))+1)/2*100);
+    return `<div class="tl-card">
+      <div class="zone-row">
+        <div class="tl-dot ${sig.signal}"></div>
+        <div>
+          <div class="zone-name" style="color:${m.c}">${m.n}</div>
+          <div class="tl-label ${sig.signal}">${labelShort[sig.signal]}</div>
+        </div>
+      </div>
+      <div class="tl-bars">
+        <div class="tl-bar-row"><span class="tl-bar-lbl">Vind</span><div class="tl-bar-track"><div class="tl-bar-fill" style="width:${norm(sig.wind_score)}%;background:${sig.wind_score>0?'#22c55e':'#f87171'}"></div></div><span class="tl-bar-val">${(sig.wind_score*100).toFixed(0)}</span></div>
+        <div class="tl-bar-row"><span class="tl-bar-lbl">Temp</span><div class="tl-bar-track"><div class="tl-bar-fill" style="width:${norm(sig.temp_score)}%;background:${sig.temp_score>0?'#22c55e':'#f87171'}"></div></div><span class="tl-bar-val">${(sig.temp_score*100).toFixed(0)}</span></div>
+        <div class="tl-bar-row"><span class="tl-bar-lbl">Hydro</span><div class="tl-bar-track"><div class="tl-bar-fill" style="width:${norm(sig.precip_score)}%;background:${sig.precip_score>0?'#22c55e':'#f87171'}"></div></div><span class="tl-bar-val">${(sig.precip_score*100).toFixed(0)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – CAPTURE RATE
+// ════════════════════════════════════════════════════════════
+function renderCaptureRate(){
+  hide('ld-capture');
+  if(!CR||!Object.keys(CR).length)return;
+
+  const visibleZones=Object.keys(CR).filter(z=>selZ.has(z));
+  if(!visibleZones.length)return;
+
+  // Sammanfattningskort: senaste månaden per zon
+  const summary=$('cr-summary');
+  summary.innerHTML=visibleZones.map(z=>{
+    const rows=CR[z];if(!rows?.length)return'';
+    const last=rows[rows.length-1];
+    const pct=last.capture_rate!=null?(last.capture_rate*100).toFixed(1):'–';
+    const color=last.capture_rate>0.95?'#22c55e':last.capture_rate>0.88?'#fbbf24':'#f87171';
+    const cp=disp(last.capture_price).toFixed(1);
+    const sp=disp(last.spot_avg).toFixed(1);
+    return`<div class="cr-card"><div class="cr-zone" style="color:${ZM[z]?.c||'#fff'}">${ZM[z]?.n||z}</div><div class="cr-val" style="color:${color}">${pct}%</div><div class="cr-sub">${cp} vs ${sp} ${unit()}</div></div>`;
+  }).join('');
+
+  // Kombinera alla månader
+  const allMonths=[...new Set(visibleZones.flatMap(z=>(CR[z]||[]).map(r=>r.month)))].sort();
+  const captureDS=visibleZones.map(z=>{
+    const m=ZM[z];
+    const byMonth=Object.fromEntries((CR[z]||[]).map(r=>[r.month,r.capture_rate]));
+    return{label:m?.n||z,data:allMonths.map(mo=>byMonth[mo]!=null?parseFloat((byMonth[mo]*100).toFixed(1)):null),borderColor:m?.c||'#fff',backgroundColor:(m?.c||'#fff')+'40',borderWidth:2,pointRadius:4,tension:.2,fill:false,spanGaps:false};
+  });
+
+  mc('c-capture',{type:'line',data:{labels:allMonths,datasets:captureDS},options:{
+    scales:{y:{min:70,max:110,title:{display:true,text:'Capture rate (%)',color:'#4a6580'},ticks:{callback:v=>v+'%'}}},
+    plugins:{
+      legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10},color:'#7aa0be',padding:12}},
+      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y?.toFixed(1)}%`}},
+      annotation:{annotations:{line100:{type:'line',yMin:100,yMax:100,borderColor:'#4a6580',borderWidth:1,borderDash:[4,4]}}},
+    },
+  }});
+
+  // Detaljtabell – senaste månaden
+  show('cr-table-card');
+  const tbody=$('cr-tbody');
+  const tableRows=[];
+  for(const z of visibleZones){
+    const rows=(CR[z]||[]).slice(-3);
+    for(const r of rows){
+      const pct=r.capture_rate!=null?(r.capture_rate*100).toFixed(1)+'%':'–';
+      const color=r.capture_rate>0.95?'var(--grn)':r.capture_rate>0.88?'var(--amb)':'var(--red)';
+      tableRows.push(`<tr><td><span class="zdot" style="background:${ZM[z]?.c}"></span>${ZM[z]?.n||z}</td><td>${r.month}</td><td>${fp(disp(r.capture_price))}</td><td>${fp(disp(r.spot_avg))}</td><td style="color:${color};font-weight:600">${pct}</td></tr>`);
+    }
+  }
+  tbody.innerHTML=tableRows.join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – WIND
+// ════════════════════════════════════════════════════════════
+function renderWind(){
+  if(!WD.length)return;hide('ld-wind');
+  const times=[...new Set(WD.flatMap(r=>r.h.map(x=>x.time.toISOString())))].sort();
+  const labels=times.map(t=>String(new Date(t).getHours()).padStart(2,'0')+':00');
+  mc('c-wind',{type:'line',data:{labels,datasets:WD.map((r,i)=>({label:r.n,data:times.map(t=>{const h=r.h.find(x=>x.time.toISOString()===t);return h?parseFloat(h.w.toFixed(1)):null;}),borderColor:WC[i],backgroundColor:WC[i]+'18',borderWidth:1.5,pointRadius:0,tension:.4,fill:true,spanGaps:true}))},options:{scales:{y:{title:{display:true,text:'m/s',color:'#4a6580'}}}}});
+  mc('c-cf',{type:'line',data:{labels,datasets:WD.map((r,i)=>({label:r.n,data:times.map(t=>{const h=r.h.find(x=>x.time.toISOString()===t);return h?parseFloat((h.cf*100).toFixed(1)):null;}),borderColor:WC[i],backgroundColor:WC[i]+'25',borderWidth:1,pointRadius:0,tension:.4,fill:true,spanGaps:true}))},options:{scales:{y:{min:0,max:105,title:{display:true,text:'Kapacitetsfaktor (%)',color:'#4a6580'}}}}});
+  $('wcards').innerHTML=WD.map((r,i)=>{const l=r.h[0];const avg=r.h.reduce((a,b)=>a+b.w,0)/r.h.length;const cf=r.h.reduce((a,b)=>a+b.cf,0)/r.h.length*100;return`<div class="wc"><div class="rn">${r.n}</div><div class="wv" style="color:${WC[i]}">${l.w.toFixed(1)} m/s</div><div class="ws">Snitt 48h: ${avg.toFixed(1)} m/s · CF ${cf.toFixed(0)}%</div></div>`;}).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// RENDER – HYDRO
+// ════════════════════════════════════════════════════════════
+function renderHydro(){
+  if(!HD.length)return;hide('ld-hydro');
+  const labels=HD[0].d.map(x=>dlbl(x.date));
+  mc('c-prec',{type:'bar',data:{labels,datasets:HD.map((r,i)=>({label:r.n,data:r.d.map(x=>parseFloat(x.p.toFixed(1))),backgroundColor:WC[i]+'bb',borderColor:WC[i],borderWidth:1}))},options:{scales:{y:{title:{display:true,text:'mm/dygn',color:'#4a6580'}}}}});
+}
+
+// ════════════════════════════════════════════════════════════
+// AI ANALYSIS
+// ════════════════════════════════════════════════════════════
+async function generateAI(){
+  const today=new Date();const cutoff=new Date(today);cutoff.setDate(cutoff.getDate()-30);
+  const now=new Date(today);now.setMinutes(0,0,0);const zsum={};
+  for(const[z,rows]of Object.entries(PD)){if(!rows.length)continue;
+    const tod=rows.filter(r=>same(r.time,today));const hist=rows.filter(r=>r.time>=cutoff);
+    if(!tod.length||!hist.length)continue;
+    const ta=tod.reduce((a,b)=>a+b.price,0)/tod.length;const ha=hist.reduce((a,b)=>a+b.price,0)/hist.length;
+    zsum[z]={idag_EUR_MWh:Math.round(ta),snitt30d:Math.round(ha),diff_pct:Math.round((ta/ha-1)*100)};}
+  const wsum={};WD.forEach(r=>{wsum[r.n]={cf_pct:Math.round(r.h.slice(0,12).reduce((a,b)=>a+b.cf,0)/Math.min(12,r.h.length)*100)};});
+  if(!Object.keys(zsum).length)return;
+  try{
+    const c=new AbortController();setTimeout(()=>c.abort(),20000);
+    const resp=await fetch(ANTHROPIC,{method:'POST',signal:c.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:180,messages:[{role:'user',content:`Du är senior elhandlare på ett nordiskt energibolag. Skriv EXAKT 2 meningar på svenska om dagens spotpriser ur ett producentperspektiv. Nämn konkreta siffror, den viktigaste drivkraften och om capture-risken är relevant idag.\n\nPrisdata: ${JSON.stringify(zsum)}\nVindkapacitetsfaktor 12h: ${JSON.stringify(wsum)}`}]})});
+    const data=await resp.json();const txt=data.content?.find(c=>c.type==='text')?.text;
+    if(txt){$('ai-txt').textContent=txt;$('ai-txt').style.cssText='';$('ai-sub').textContent=`${new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})} · Claude Haiku`;}
+  }catch(e){$('ai-txt').textContent='AI-analys ej tillgänglig.';$('ai-txt').style.color='var(--t3)';}
+}
+
+// ════════════════════════════════════════════════════════════
+// UI SETUP
+// ════════════════════════════════════════════════════════════
+function setupUI(){
+  document.querySelectorAll('.tb').forEach(b=>{b.addEventListener('click',()=>{document.querySelectorAll('.tb,.tp').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(`tp-${b.dataset.t}`).classList.add('on');});});
+  document.querySelectorAll('.z-btn').forEach(b=>{b.addEventListener('click',()=>{const z=b.dataset.z;if(selZ.has(z))selZ.delete(z);else selZ.add(z);b.classList.toggle('on');renderStrip();renderToday();renderHistory();renderSignal();renderCaptureRate();});});
+  $('b-ore').addEventListener('click',()=>{cur='ore';$('b-ore').classList.add('on');$('b-eur').classList.remove('on');renderStrip();renderToday();renderHistory();renderCaptureRate();});
+  $('b-eur').addEventListener('click',()=>{cur='eur';$('b-eur').classList.add('on');$('b-ore').classList.remove('on');renderStrip();renderToday();renderHistory();renderCaptureRate();});
+  $('rate-in').addEventListener('input',e=>{rate=parseFloat(e.target.value)||11.5;renderStrip();renderToday();renderHistory();renderCaptureRate();});
+  const clk=$('clock');setInterval(()=>{clk.textContent=new Date().toLocaleTimeString('sv-SE');},1000);clk.textContent=new Date().toLocaleTimeString('sv-SE');
+}
+
+// ════════════════════════════════════════════════════════════
+// MAIN
+// ════════════════════════════════════════════════════════════
+async function main(){
+  setupUI();
+  const ok=await loadData();
+  if(ok){
+    renderStrip();renderToday();renderHistory();renderSignal();renderCaptureRate();
+    generateAI();
+  }else{
+    hide('ld-today');
+    $('pstrip').innerHTML=`<div class="ebox">⚠️ <strong>Prisdata ej tillgänglig.</strong> Gå till GitHub → Actions → "Fetch electricity prices" → Run workflow. Ladda om efter ~30 sek.</div>`;
+  }
+  Promise.all(WIND_R.map(async r=>{
+    const d=await tryFetch(`${OM}?latitude=${r.lat}&longitude=${r.lon}&hourly=wind_speed_100m&wind_speed_unit=ms&forecast_days=3&timezone=auto`,14000);
+    if(!d?.hourly)return null;const now=new Date();
+    return{n:r.n,h:d.hourly.time.map((t,i)=>({time:new Date(t),w:d.hourly.wind_speed_100m[i]||0,cf:wcap(d.hourly.wind_speed_100m[i]||0)})).filter(x=>x.time>=now).slice(0,48)};
+  })).then(res=>{WD=res.filter(Boolean);renderWind();if(ok)generateAI();});
+  Promise.all(HYDRO_R.map(async r=>{
+    const d=await tryFetch(`${OM}?latitude=${r.lat}&longitude=${r.lon}&daily=precipitation_sum,snowfall_sum&forecast_days=7&timezone=auto`,14000);
+    if(!d?.daily)return null;
+    return{n:r.n,d:d.daily.time.map((t,i)=>({date:new Date(t),p:d.daily.precipitation_sum[i]||0,s:d.daily.snowfall_sum[i]||0}))};
+  })).then(res=>{HD=res.filter(Boolean);renderHydro();});
+}
+main();
+</script>
+</body>
+</html>
